@@ -13,32 +13,26 @@ import           GHC.IO.Handle
 import           System.Exit
 import           System.Process
 
-----------------
--- Internal Git
-----------------
-
-git :: String
-git = "git"
-
 type CmdResult = (ExitCode, String, String)
 
 type PostProcess a = CmdResult -> IO a
 
-runGitCmd :: [String] -> String -> IO (ExitCode, String, String)
-runGitCmd args input = do
+runCmd :: [String] -> String -> IO (ExitCode, String, String)
+runCmd [] _ = error "No command to run"
+runCmd (exec:args) input = do
   (Just hin, Just hout, Just herr, ph) <-
-    createProcess (proc git args) { std_in = CreatePipe
-                                  , std_out = CreatePipe
-                                  , std_err = CreatePipe
-                                  }
+    createProcess (proc exec args) { std_in = CreatePipe
+                                   , std_out = CreatePipe
+                                   , std_err = CreatePipe
+                                   }
   hPutStr hin input
   exitCode <- waitForProcess ph
   out <- hGetContents hout
   err <- hGetContents herr
   return (exitCode, out, err)
 
-runGitCmd_ :: [String] -> IO ()
-runGitCmd_ args = void $ runGitCmd args empty
+runCmd_ :: [String] -> IO ()
+runCmd_ args = void $ runCmd args empty
 
 infixl 1 %>>=
 (%>>=) :: IO CmdResult -> PostProcess () -> IO ()
@@ -47,6 +41,19 @@ result %>>= postProcess = do
   case exitCode of
     ExitSuccess -> postProcess res
     _ -> pure ()
+
+----------------
+-- Internal Git
+----------------
+
+git :: String
+git = "git"
+
+runGitCmd :: [String] -> String -> IO (ExitCode, String, String)
+runGitCmd = runCmd . (git:)
+
+runGitCmd_ :: [String] -> IO ()
+runGitCmd_ = runCmd_ . (git:)
 
 
 {- ================= -}
