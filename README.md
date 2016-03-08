@@ -1,2 +1,2 @@
 # giterate
-Manage projects with git
+Git-powered project management
