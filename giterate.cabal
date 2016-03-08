@@ -16,7 +16,10 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   exposed-modules:     Giterate
+                     , Giterate.Project
+  other-modules:       Giterate.Internal
   build-depends:       base >= 4.7 && < 5
+                     , process >= 1.2
   default-language:    Haskell2010
 
 executable giterate-exe
@@ -30,10 +33,12 @@ executable giterate-exe
 
 test-suite giterate-test
   type:                exitcode-stdio-1.0
-  hs-source-dirs:      test
+  hs-source-dirs:      test, src
   main-is:             Spec.hs
   build-depends:       base
+                     , HUnit >= 1.3
                      , giterate
+                     , process >= 1.2
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
 
