@@ -5,7 +5,8 @@ import Options.Applicative
 data GtrArgs = GtrArgs { gtrCommand :: GtrCommand
                  }
 
-data GtrCommand = GtrCreate
+data GtrCommand = GtrInit
+                | GtrCreate
                 | GtrDelete
 
 gtrArgParser :: Parser GtrArgs
@@ -13,6 +14,14 @@ gtrArgParser = GtrArgs <$> gtrCommandParser
 
 gtrCommandParser :: Parser GtrCommand
 gtrCommandParser = subparser (
+  command "init" (
+      info (helper <*> gtrInitParser) (
+          fullDesc
+          <> progDesc "Initialize giterate repo"
+          <> header "git-erate init - Initialize giterate repo"
+          )
+      )
+  <>
   command "create" (
       info (helper <*> gtrCreateParser) (
           fullDesc
@@ -24,6 +33,9 @@ gtrCommandParser = subparser (
 
 gtrCreateParser :: Parser GtrCommand
 gtrCreateParser = pure GtrCreate
+
+gtrInitParser :: Parser GtrCommand
+gtrInitParser = pure GtrInit
 
 execute :: GtrArgs -> IO ()
 execute _ = putStrLn "Git-erate"

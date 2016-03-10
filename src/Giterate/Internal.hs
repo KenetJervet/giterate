@@ -65,6 +65,16 @@ class GtrCommand cmd where
 
 type TimeStamp = Double
 
+----------------
+-- Initial repo
+----------------
+
+data GtrInit
+  = GtrInit
+
+instance GtrCommand GtrInit where
+  execute GtrInit = runGitCmd_ ["init"]
+
 ------------------
 -- Create project
 ------------------
@@ -86,6 +96,5 @@ data GtrDeleteProject
   | GtrDeleteProjectByName { gtrDeleteProjectByNameName :: String }
 
 instance GtrCommand GtrDeleteProject where
-  execute method = case method of
-    GtrDeleteProjectByHash {..} -> undefined
-    GtrDeleteProjectByName {..} -> undefined
+  execute GtrDeleteProjectByHash {..} = undefined
+  execute GtrDeleteProjectByName {..} = undefined
