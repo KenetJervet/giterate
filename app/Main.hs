@@ -1,13 +1,17 @@
+{-# LANGUAGE RecordWildCards #-}
+
 module Main where
 
-import Options.Applicative
+import           Control.Monad
+import qualified Giterate            as Gtr
+import           Options.Applicative
 
 data GtrArgs = GtrArgs { gtrCommand :: GtrCommand
                  }
 
 data GtrCommand = GtrInit
-                | GtrCreate
-                | GtrDelete
+                | GtrCreateProject { gtrCreateProjectName :: String }
+                | GtrDeleteProject
 
 gtrArgParser :: Parser GtrArgs
 gtrArgParser = GtrArgs <$> gtrCommandParser
@@ -32,16 +36,22 @@ gtrCommandParser = subparser (
   )
 
 gtrCreateParser :: Parser GtrCommand
-gtrCreateParser = pure GtrCreate
+gtrCreateParser = GtrCreateProject <$> argument str (metavar "project_name")
 
 gtrInitParser :: Parser GtrCommand
 gtrInitParser = pure GtrInit
 
-execute :: GtrArgs -> IO ()
-execute _ = putStrLn "Git-erate"
+execute :: GtrArgs -> IO Gtr.CmdResult
+execute GtrArgs {..} = execCmd gtrCommand
+
+execCmd :: GtrCommand -> IO Gtr.CmdResult
+execCmd GtrInit = Gtr.execute Gtr.GtrInit
+execCmd GtrCreateProject {..} = do
+  Gtr.execute Gtr.GtrCreateProject { gtrCreateProjectName = gtrCreateProjectName }
+execCmd _ = error "Not implemented"
 
 main :: IO ()
-main = execParser opts >>= execute
+main = void (execParser opts >>= execute)
   where
     opts = info (helper <*> gtrArgParser)
       ( fullDesc

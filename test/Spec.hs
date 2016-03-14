@@ -1,12 +1,16 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import           Control.Monad
-import           Giterate.Internal
+import           Giterate
+import           System.Directory
 import           Test.HUnit
+import           TestUtil
 
-hutest1 :: Test
-hutest1 = TestCase $ do
-  (exitCode, out, err) <- runGitCmd ["status"] ""
+testInit :: Test
+testInit = testWithTmpDir $ \tmpDir -> do
+  putStrLn tmpDir
+  setCurrentDirectory tmpDir
+  (exitCode, out, err) <- execute GtrInit
   putStrLn "==== exitCode ===="
   print exitCode
   putStrLn "==== out ===="
@@ -18,4 +22,4 @@ hutest1 = TestCase $ do
 main :: IO ()
 -- main = test1
 -- main = quickCheck ((\s -> s == s) :: Char -> Bool)
-main = void $ runTestTT $ TestList [TestLabel "hutest1" hutest1]
+main = void $ runTestTT $ TestList [TestLabel "testInit" testInit]
