@@ -41,8 +41,11 @@ instance GtrCommand (GtrPrereq a) where
   execute (GtrPrereq a errmsg) = do
     cmdResult@(exitCode, out, err) <- execute a
     case exitCode of
-      ExitSuccess -> undefined
+      ExitSuccess -> cmdResult
       _ -> hPutStr stderr errmsg >> return cmdResult
+
+require :: (GtrCommand a) => a -> String -> GtrPrereq a
+require = GtrPrereq
 
 ----------------
 -- Initial repo
