@@ -8,6 +8,7 @@ module Giterate ( CmdResult
                 , GtrDeleteProject (..)
                 ) where
 
+import           Control.Monad
 import           Data.Time.Clock
 import           Giterate.Internal as GI
 import           System.Exit
@@ -34,25 +35,36 @@ a %%>> b = GtrCommandCombo a b
 -- Repo status checks
 ----------------------
 
-data GtrPrereq a where
-  GtrPrereq :: (GtrCommand a) => a -> String -> GtrPrereq a
+data GtrPrereqVerb = GtrIsInitialized
+                   | GtrNothing
 
-instance GtrCommand (GtrPrereq a) where
-  execute (GtrPrereq a errmsg) = do
-    cmdResult@(exitCode, out, err) <- execute a
-    case exitCode of
-      ExitSuccess -> cmdResult
-      _ -> hPutStr stderr errmsg >> return cmdResult
+{-# INLINE defaultVerbErrMsg #-}
+defaultVerbErrMsg :: GtrPrereqVerb -> String
+defaultVerbErrMsg GtrIsInitialized = ""
 
-require :: (GtrCommand a) => a -> String -> GtrPrereq a
-require = GtrPrereq
+require :: GtrPrereqVerb -> Maybe String -> IO CmdResult
+require verb Nothing = undefined
+require verb errmsg = execute (GtrPrereqCommand verb errmsg)
+
+instance GtrCommand GtrPrereqVerb where
+  execute GtrIsInitialized = undefined
+  execute _ = undefined
+
+data GtrPrereqCommand = GtrPrereqCommand GtrPrereqVerb String
+
+instance GtrCommand GtrPrereqCommand where
+  execute (GtrPrereqCommand a errmsg) = do
+    cmdResult@(exitCode, _, _) <- execute a
+    when (exitCode /= ExitSuccess) $ hPutStr stderr errmsg
+    return cmdResult
+
+
 
 ----------------
 -- Initial repo
 ----------------
 
-data GtrInit
-  = GtrInit
+data GtrInit = GtrInit
 
 instance GtrCommand GtrInit where
   execute GtrInit =
@@ -71,7 +83,7 @@ data GtrCreateProject
 
 instance GtrCommand GtrCreateProject where
   execute GtrCreateProject {..} =
-    undefined
+    require GtrIsInitialized ""
 
 ------------------
 -- Delete project
